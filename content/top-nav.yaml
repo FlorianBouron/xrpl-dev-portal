@@ -72,6 +72,11 @@
           href: /infrastructure/xrpl-servers/
     - label: Dev Tools
       href: /docs/dev-tools/
+    - label: Websocket API Tool
+      href: /docs/dev-tools/websocket-api-tool/
+      page: ./websocketapitool.page.tsx
+
+
 
 
 - group: Community
