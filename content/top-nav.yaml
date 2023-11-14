@@ -73,8 +73,8 @@
     - label: Dev Tools
       href: /docs/dev-tools/
     - label: Websocket API Tool
-      href: /docs/dev-tools/websocket-api-tool/
-      page: ./websocketapitool.page.tsx
+      href: /dev-tools/websocket-api-tool:slug
+      page: ./dev-tools/websocket-api-tool.page.tsx
 
 
 
