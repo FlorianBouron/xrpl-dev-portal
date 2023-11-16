@@ -13,6 +13,10 @@ import {
 import commandList from "./utils/data/command-list.json";
 import connections from "./utils/data/connections.json";
 
+if (typeof window !== "undefined" && typeof window.navigator !== "undefined") {
+  require("codemirror/mode/javascript/javascript");
+}
+
 export default function WebsocketApiTool() {
   const { hash: slug } = useLocation();
   console.log(slug);
@@ -242,6 +246,7 @@ export default function WebsocketApiTool() {
                     json: true,
                     smartIndent: false,
                     gutters: ["CodeMirror-lint-markers"],
+                    lint: true,
                   }}
                   onChange={handleCurrentMethodChange}
                 />
