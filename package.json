@@ -10,6 +10,7 @@
   "keywords": [],
   "license": "MIT",
   "dependencies": {
+    "@ltd/j-toml": "^1.38.0",
     "@redocly/portal": "0.57.0",
     "axios": "^1.6.2",
     "lottie-react": "^2.4.0",
