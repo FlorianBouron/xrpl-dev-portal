@@ -1,48 +1,41 @@
 [
     {
-      "id": "wstool-1-connection-s1",
+      "id": "connection-s1",
       "ws_url": "wss://s1.ripple.com/",
       "jsonrpc_url": "https://s1.ripple.com:51234/",
       "shortname": "Mainnet s1",
       "longname": "s1.ripple.com (Mainnet Public Cluster)"
     },
     {
-      "id": "wstool-1-connection-xrplcluster",
+      "id": "connection-xrplcluster",
       "ws_url": "wss://xrplcluster.com/",
       "jsonrpc_url": "https://xrplcluster.com/",
       "shortname": "Mainnet xrplcluster",
       "longname": "xrplcluster.com (Mainnet Full History Cluster)"
     },
     {
-      "id": "wstool-1-connection-s2",
+      "id": "connection-s2",
       "ws_url": "wss://s2.ripple.com/",
       "jsonrpc_url": "https://s2.ripple.com:51234/",
       "shortname": "Mainnet s2",
       "longname": "s2.ripple.com (Mainnet Full History Cluster)"
     },
     {
-      "id": "wstool-1-connection-testnet",
+      "id": "connection-testnet",
       "ws_url": "wss://s.altnet.rippletest.net:51233/",
       "jsonrpc_url": "https://s.altnet.rippletest.net:51234/",
       "shortname": "Testnet",
       "longname": "s.altnet.rippletest.net (Testnet Public Cluster)"
     },
     {
-      "id": "wstool-1-connection-devnet",
+      "id": "connection-devnet",
       "ws_url": "wss://s.devnet.rippletest.net:51233/",
       "jsonrpc_url": "https://s.devnet.rippletest.net:51234/",
       "shortname": "Devnet",
       "longname": "s.devnet.rippletest.net (Devnet Public Cluster)"
     },
     {
-      "id": "wstool-1-connection-ammdevnet",
-      "ws_url": "wss://amm.devnet.rippletest.net:51233/",
-      "jsonrpc_url": "https://amm.devnet.rippletest.net:51234/",
-      "shortname": "AMM-Devnet",
-      "longname": "amm.devnet.rippletest.net (XLS-30d AMM Devnet)"
-    },
-    {
-      "id": "wstool-1-connection-localhost",
+      "id": "connection-localhost",
       "ws_url": "ws://localhost:6006/",
       "jsonrpc_url": "http://localhost:5005/",
       "shortname": "Local server",

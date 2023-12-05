@@ -4,14 +4,13 @@ import { useLocation } from "react-router-dom";
 
 import { useTranslate } from "@portal/hooks";
 import { Link } from "@redocly/portal/dist/client/App/Link";
-import {
-  PermanentLinkModal,
-  CurlModal,
-  ConnectionModal,
-} from "./utils/websocketapi-modals";
+import { PermalinkModal } from "./utils/websocketapi/permalink-modal";
+import { CurlModal } from "./utils/websocketapi/curl-modal";
+import { ConnectionModal } from "./utils/websocketapi/connection-modal";
 
 import commandList from "./utils/data/command-list.json";
 import connections from "./utils/data/connections.json";
+import { RightSideBar } from "./utils/websocketapi/right-sidebar";
 
 if (typeof window !== "undefined" && typeof window.navigator !== "undefined") {
   require("codemirror/mode/javascript/javascript");
@@ -19,7 +18,6 @@ if (typeof window !== "undefined" && typeof window.navigator !== "undefined") {
 
 export default function WebsocketApiTool() {
   const { hash: slug } = useLocation();
-  console.log(slug);
   const { translate } = useTranslate();
   const [isConnectionModalVisible, setIsConnectionModalVisible] =
     useState(false);
@@ -29,8 +27,7 @@ export default function WebsocketApiTool() {
   const [keepLast, setKeepLast] = useState(50);
   const [streamPaused, setStreamPaused] = useState(false);
   const streamPausedRef = useRef(streamPaused);
-  const [isPermanentLinkModalVisible, setIsPermanentLinkModalVisible] =
-    useState(false);
+  const [isPermalinkModalVisible, setIsPermalinkModalVisible] = useState(false);
   const [isCurlModalVisible, setIsCurlModalVisible] = useState(false);
 
   const getInitialMethod = () => {
@@ -82,11 +79,11 @@ export default function WebsocketApiTool() {
     setIsConnectionModalVisible(false);
   };
 
-  const openPermanentLinkModal = () => {
-    setIsPermanentLinkModalVisible(true);
+  const openPermalinkModal = () => {
+    setIsPermalinkModalVisible(true);
   };
-  const closePermanentLinkModal = () => {
-    setIsPermanentLinkModalVisible(false);
+  const closePermalinkModal = () => {
+    setIsPermalinkModalVisible(false);
   };
 
   const openCurlModal = () => {
@@ -157,41 +154,8 @@ export default function WebsocketApiTool() {
     }
   };
 
-  const permanentLinkRef = useRef(null);
+  const PermalinkRef = useRef(null);
   const curlRef = useRef(null);
-
-  const RightSideBar = () => {
-    const { translate } = useTranslate();
-    return (
-      <div className="command-list-wrapper">
-        <div className="toc-header">
-          <h4>{translate("API Methods")}</h4>
-        </div>
-        <ul className="command-list" id="command_list">
-          {commandList.map((list) => (
-            <>
-              <li className="separator">{list.group}</li>
-              {list.methods.map((method) => (
-                <li
-                  className={`method${
-                    method === currentMethod ? " active" : ""
-                  }`}
-                  key={method.id}
-                >
-                  <Link
-                    to={`dev-tools/websocket-api-tool#${method.name}`}
-                    onClick={() => setCurrentMethod(method)}
-                  >
-                    {method.name}
-                  </Link>
-                </li>
-              ))}
-            </>
-          ))}
-        </ul>
-      </div>
-    );
-  };
 
   return (
     <div className="container-fluid" role="document" id="main_content_wrapper">
@@ -200,7 +164,11 @@ export default function WebsocketApiTool() {
           className="right-sidebar col-lg-3 order-lg-4"
           role="complementary"
         >
-          <RightSideBar />
+          <RightSideBar
+            commandList={commandList}
+            currentMethod={currentMethod}
+            setCurrentMethod={setCurrentMethod}
+          />
         </aside>
         <main
           className="main col-md-7 col-lg-6 order-md-3  "
@@ -315,14 +283,14 @@ export default function WebsocketApiTool() {
                     data-toggle="modal"
                     data-target="#wstool-1-permalink"
                     title="Permalink"
-                    onClick={openPermanentLinkModal}
+                    onClick={openPermalinkModal}
                   >
                     <i className="fa fa-link"></i>
                   </button>
-                  {isPermanentLinkModalVisible && (
-                    <PermanentLinkModal
-                      permanentLinkRef={permanentLinkRef}
-                      closePermanentLinkModal={closePermanentLinkModal}
+                  {isPermalinkModalVisible && (
+                    <PermalinkModal
+                      permalinkRef={PermalinkRef}
+                      closePermalinkModal={closePermalinkModal}
                       currentMethod={currentMethod}
                       selectedConnection={selectedConnection}
                     />
