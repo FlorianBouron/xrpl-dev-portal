@@ -3,7 +3,6 @@ import { UnControlled as CodeMirror } from "react-codemirror2";
 import { useLocation } from "react-router-dom";
 
 import { useTranslate } from "@portal/hooks";
-import { Link } from "@redocly/portal/dist/client/App/Link";
 import { PermalinkModal } from "./utils/websocketapi/permalink-modal";
 import { CurlModal } from "./utils/websocketapi/curl-modal";
 import { ConnectionModal } from "./utils/websocketapi/connection-modal";
@@ -11,6 +10,7 @@ import { ConnectionModal } from "./utils/websocketapi/connection-modal";
 import commandList from "./utils/data/command-list.json";
 import connections from "./utils/data/connections.json";
 import { RightSideBar } from "./utils/websocketapi/right-sidebar";
+import { slugify } from "./utils";
 
 if (typeof window !== "undefined" && typeof window.navigator !== "undefined") {
   require("codemirror/mode/javascript/javascript");
@@ -29,12 +29,15 @@ export default function WebsocketApiTool() {
   const streamPausedRef = useRef(streamPaused);
   const [isPermalinkModalVisible, setIsPermalinkModalVisible] = useState(false);
   const [isCurlModalVisible, setIsCurlModalVisible] = useState(false);
+  const [wsLoading, setWsLoading] = useState(false);
+  const [sendLoading, setSendLoading] = useState(false);
 
   const getInitialMethod = () => {
     if (slug) {
       for (const group of commandList) {
         for (const method of group.methods) {
-          if (method.name === slug.slice(1)) {
+          if (slugify(method.name) === slug.slice(1)) {
+            method.name = slugify(method.name);
             return method;
           }
         }
@@ -44,15 +47,13 @@ export default function WebsocketApiTool() {
   };
 
   const [currentMethod, setCurrentMethod] = useState(getInitialMethod);
+  const [currentBody, setCurrentBody] = useState(
+    JSON.stringify(currentMethod.body)
+  );
   streamPausedRef.current = streamPaused;
 
-  const handleCurrentMethodChange = (editor, data, value) => {
-    const newBody = JSON.parse(value);
-
-    setCurrentMethod((previousMethod) => {
-      previousMethod.body = newBody;
-      return previousMethod;
-    });
+  const handleCurrentBodyChange = (editor, data, value) => {
+    setCurrentBody(value);
   };
 
   const handleConnectionChange = (event) => {
@@ -98,16 +99,22 @@ export default function WebsocketApiTool() {
   const [responses, setResponses] = useState([]);
 
   useEffect(() => {
+    if (ws && ws.readyState < 2) {
+      ws.close();
+    }
     const newWs = new WebSocket(selectedConnection.ws_url);
     setWs(newWs);
+    setWsLoading(true);
     newWs.onopen = function handleOpen(event) {
       setConnected(true);
       setConnectionError(false);
+      setWsLoading(false);
     };
 
     newWs.onclose = function handleClose(event) {
       if (event.wasClean) {
         setConnected(false);
+        setWsLoading(false);
       } else {
         console.debug(
           "socket close event discarded (new socket status already provided):",
@@ -118,6 +125,7 @@ export default function WebsocketApiTool() {
 
     newWs.onerror = function handleError(event) {
       setConnectionError(true);
+      setWsLoading(false);
       console.error("socket error:", event);
     };
 
@@ -129,6 +137,9 @@ export default function WebsocketApiTool() {
       } catch (error) {
         console.error("Error parsing validation message", error);
         return;
+      }
+      if (data.type === "response") {
+        setSendLoading(false);
       }
       if (data.type === "response" || !streamPausedRef.current) {
         setResponses((prevResponses) =>
@@ -148,9 +159,26 @@ export default function WebsocketApiTool() {
     }
   }, [responses, keepLast]);
 
+  useEffect(() => {
+    setCurrentBody(JSON.stringify(currentMethod.body));
+  }, [currentMethod]);
+
   const sendWebSocketMessage = (messageBody) => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      alert("Can't send request: Must be connected first!");
+      return;
+    }
+    try {
+      JSON.parse(messageBody); // we only need the text version, but test JSON syntax
+    } catch (e) {
+      alert("Invalid request JSON");
+      return;
+    }
+
+    setSendLoading(true);
+
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(messageBody));
+      ws.send(messageBody);
     }
   };
 
@@ -189,19 +217,23 @@ export default function WebsocketApiTool() {
                   {currentMethod.name}
                 </a>
               </h3>
-              <p className="blurb">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: currentMethod.description,
-                  }}
-                />
-              </p>
-              <a
-                className="btn btn-outline-secondary api-readmore"
-                href="server_info.html"
-              >
-                {translate("Read more")}
-              </a>
+              {currentMethod.description && (
+                <p className="blurb">
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: currentMethod.description,
+                    }}
+                  />
+                </p>
+              )}
+              {currentMethod.link && (
+                <a
+                  className="btn btn-outline-secondary api-readmore"
+                  href={currentMethod.link}
+                >
+                  {translate("Read more")}
+                </a>
+              )}
             </div>
 
             <div className="api-input-area pt-4">
@@ -216,7 +248,7 @@ export default function WebsocketApiTool() {
                     gutters: ["CodeMirror-lint-markers"],
                     lint: true,
                   }}
-                  onChange={handleCurrentMethodChange}
+                  onChange={handleCurrentBodyChange}
                 />
               </div>
               <div
@@ -226,23 +258,22 @@ export default function WebsocketApiTool() {
                 <div className="btn-group mr-3" role="group">
                   <button
                     className="btn btn-outline-secondary send-request"
-                    onClick={() => sendWebSocketMessage(currentMethod.body)}
+                    onClick={() => sendWebSocketMessage(currentBody)}
                   >
                     {translate("Send request")}
                   </button>
-                  <div
-                    className="input-group loader send-loader"
-                    style={{ display: "none" }}
-                  >
-                    <span className="input-group-append">
-                      <img
-                        alt="(loading)"
-                        src="{{currentpage.prefix}}assets/img/xrp-loader-96.png"
-                        height="24"
-                        width="24"
-                      />
-                    </span>
-                  </div>
+                  {sendLoading && (
+                    <div className="input-group loader send-loader">
+                      <span className="input-group-append">
+                        <img
+                          alt="(loading)"
+                          src="{{currentpage.prefix}}assets/img/xrp-loader-96.png"
+                          height="24"
+                          width="24"
+                        />
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="btn-group request-options" role="group">
                   <button
@@ -265,19 +296,18 @@ export default function WebsocketApiTool() {
                       connections={connections}
                     />
                   )}
-                  <div
-                    className="input-group loader connect-loader"
-                    style={{ display: "none" }}
-                  >
-                    <span className="input-group-append">
-                      <img
-                        alt="(loading)"
-                        src="{{currentpage.prefix}}assets/img/xrp-loader-96.png"
-                        height="24"
-                        width="24"
-                      />
-                    </span>
-                  </div>
+                  {wsLoading && (
+                    <div className="input-group loader connect-loader">
+                      <span className="input-group-append">
+                        <img
+                          alt="(loading)"
+                          src="{{currentpage.prefix}}assets/img/xrp-loader-96.png"
+                          height="24"
+                          width="24"
+                        />
+                      </span>
+                    </div>
+                  )}
                   <button
                     className="btn btn-outline-secondary permalink"
                     data-toggle="modal"
@@ -291,24 +321,26 @@ export default function WebsocketApiTool() {
                     <PermalinkModal
                       permalinkRef={PermalinkRef}
                       closePermalinkModal={closePermalinkModal}
-                      currentMethod={currentMethod}
+                      currentBody={currentBody}
                       selectedConnection={selectedConnection}
                     />
                   )}
-                  <button
-                    className="btn btn-outline-secondary curl"
-                    data-toggle="modal"
-                    data-target="#wstool-1-curl"
-                    title="cURL syntax"
-                    onClick={openCurlModal}
-                  >
-                    <i className="fa fa-terminal"></i>
-                  </button>
+                  {!currentMethod.ws_only && (
+                    <button
+                      className="btn btn-outline-secondary curl"
+                      data-toggle="modal"
+                      data-target="#wstool-1-curl"
+                      title="cURL syntax"
+                      onClick={openCurlModal}
+                    >
+                      <i className="fa fa-terminal"></i>
+                    </button>
+                  )}
                   {isCurlModalVisible && (
                     <CurlModal
                       curlRef={curlRef}
                       closeCurlModal={closeCurlModal}
-                      currentMethod={currentMethod}
+                      currentBody={currentBody}
                       selectedConnection={selectedConnection}
                     />
                   )}

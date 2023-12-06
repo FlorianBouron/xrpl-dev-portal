@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { useTranslate } from "@portal/hooks";
 import { Link } from "@redocly/portal/dist/client/App/Link";
+import { slugify } from "..";
 
 interface RightSideBarProps {
   commandList: any;
@@ -33,7 +34,16 @@ export const RightSideBar: React.FC<RightSideBarProps> = ({
                   to={`dev-tools/websocket-api-tool#${method.name}`}
                   onClick={() => setCurrentMethod(method)}
                 >
-                  {method.name}
+                  {currentMethod.status === "not_enabled" ? (
+                    <span
+                      className="status not_enabled"
+                      title="This feature is not currently enabled on the production XRP Ledger."
+                    >
+                      <i className="fa fa-flask"></i>
+                    </span>
+                  ) : (
+                    slugify(method.name)
+                  )}
                 </Link>
               </li>
             ))}

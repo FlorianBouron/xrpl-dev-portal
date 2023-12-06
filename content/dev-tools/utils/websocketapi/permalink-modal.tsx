@@ -5,14 +5,14 @@ import { useTranslate } from "@portal/hooks";
 interface PermaLinkProps {
   permalinkRef: any;
   closePermalinkModal: any;
-  currentMethod: any;
+  currentBody: any;
   selectedConnection: any;
 }
 
 export const PermalinkModal: React.FC<PermaLinkProps> = ({
   permalinkRef,
   closePermalinkModal,
-  currentMethod,
+  currentBody,
   selectedConnection,
 }) => {
   const { translate } = useTranslate();
@@ -50,7 +50,7 @@ export const PermalinkModal: React.FC<PermaLinkProps> = ({
                   className="form-control"
                   ref={permalinkRef}
                 >
-                  {getPermalink(selectedConnection, currentMethod)}
+                  {getPermalink(selectedConnection, currentBody)}
                 </textarea>
               </div>
             </form>
@@ -64,7 +64,7 @@ export const PermalinkModal: React.FC<PermaLinkProps> = ({
               onClick={() =>
                 copyToClipboard(
                   permalinkRef,
-                  getPermalink(selectedConnection, currentMethod)
+                  getPermalink(selectedConnection, currentBody)
                 )
               }
             >
@@ -85,24 +85,24 @@ export const PermalinkModal: React.FC<PermaLinkProps> = ({
   );
 };
 
-const getPermalink = (selectedConnection, currentMethod) => {
+const getPermalink = (selectedConnection, currentBody) => {
   const startHref = window.location.origin + window.location.pathname;
-  const encodedBody = encodeURIComponent(get_compressed_body(currentMethod));
+  const encodedBody = encodeURIComponent(get_compressed_body(currentBody));
   const encodedServer = encodeURIComponent(selectedConnection.id);
   return `${startHref}?server=${encodedServer}&req=${encodedBody}`;
 };
 
-function get_compressed_body(currentMethod) {
+function get_compressed_body(currentBody) {
   let compressed_body;
   try {
-    const body_json = currentMethod.body;
+    const body_json = currentBody;
     compressed_body = JSON.stringify(body_json, null, null);
   } catch (e) {
     // Probably invalid JSON. We'll make a permalink anyway, but we can't
     // compress all the whitespace because we don't know what's escaped. We can
     // assume that newlines are irrelevant because the rippled APIs don't accept
     // newlines in strings anywhere
-    compressed_body = currentMethod.body.toString().replace("\n", "").trim();
+    compressed_body = currentBody.replace("\n", "").trim();
   }
 
   return compressed_body;

@@ -5,7 +5,7 @@ import { useTranslate } from "@portal/hooks";
 interface CurlProps {
   curlRef: any;
   closeCurlModal: any;
-  currentMethod: any;
+  currentBody: any;
   selectedConnection: any;
 }
 
@@ -17,11 +17,11 @@ const copyToClipboard = async (textareaRef, textareaValue) => {
   }
 };
 
-const getCurl = function (currentMethod, selectedConnection) {
+const getCurl = function (currentBody, selectedConnection) {
   let body;
   try {
     // change WS to JSON-RPC syntax
-    const params = JSON.parse(JSON.stringify(currentMethod.body));
+    const params = JSON.parse(currentBody);
     delete params.id;
     const method = params.command;
     delete params.command;
@@ -40,7 +40,7 @@ const getCurl = function (currentMethod, selectedConnection) {
 export const CurlModal: React.FC<CurlProps> = ({
   curlRef,
   closeCurlModal,
-  currentMethod,
+  currentBody,
   selectedConnection,
 }) => {
   const { translate } = useTranslate();
@@ -79,7 +79,7 @@ export const CurlModal: React.FC<CurlProps> = ({
                   rows={8}
                   ref={curlRef}
                 >
-                  {getCurl(currentMethod, selectedConnection)}
+                  {getCurl(currentBody, selectedConnection)}
                 </textarea>
               </div>
             </form>
@@ -93,7 +93,7 @@ export const CurlModal: React.FC<CurlProps> = ({
               onClick={() =>
                 copyToClipboard(
                   curlRef,
-                  getCurl(currentMethod, selectedConnection)
+                  getCurl(currentBody, selectedConnection)
                 )
               }
             >
